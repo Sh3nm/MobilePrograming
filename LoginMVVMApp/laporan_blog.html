@@ -1,0 +1,592 @@
+<!-- ============================================================
+     COPY SEMUA ISI DI BAWAH INI KE BLOGSPOT HTML EDITOR
+     ============================================================ -->
+
+<style>
+  .post-body h2 {
+    font-size: 1.5em;
+    font-weight: bold;
+    border-bottom: 2px solid #4285f4;
+    padding-bottom: 6px;
+    margin-top: 32px;
+    color: #1a1a2e;
+  }
+  .post-body h3 {
+    font-size: 1.15em;
+    font-weight: bold;
+    color: #16213e;
+    margin-top: 20px;
+  }
+  .post-body pre {
+    background: #f4f4f4;
+    border-left: 4px solid #4285f4;
+    padding: 14px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.88em;
+    line-height: 1.6;
+    margin: 12px 0;
+    white-space: pre;
+  }
+  .post-body code {
+    background: #f4f4f4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+  }
+  .post-body table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+  }
+  .post-body th {
+    background: #4285f4;
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+  }
+  .post-body td {
+    border: 1px solid #ddd;
+    padding: 9px 14px;
+  }
+  .post-body tr:nth-child(even) td {
+    background: #f9f9f9;
+  }
+  .info-box {
+    background: #e8f0fe;
+    border-left: 4px solid #4285f4;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 14px 0;
+  }
+  .warn-box {
+    background: #fff3e0;
+    border-left: 4px solid #f4a228;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 14px 0;
+  }
+  .step-badge {
+    display: inline-block;
+    background: #4285f4;
+    color: white;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    text-align: center;
+    line-height: 26px;
+    font-weight: bold;
+    font-size: 0.85em;
+    margin-right: 8px;
+  }
+  .file-label {
+    background: #e8f0fe;
+    color: #1967d2;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+</style>
+
+<div class="post-body">
+
+<!-- ==================== JUDUL & META ==================== -->
+<p style="color:#666;font-size:0.9em;">📅 Juni 2026 &nbsp;|&nbsp; 🏷️ Android &nbsp;|&nbsp; Kotlin &nbsp;|&nbsp; MVVM &nbsp;|&nbsp; Room Database</p>
+
+<p>
+Pada artikel ini kita akan membuat aplikasi <strong>Login User</strong> sederhana menggunakan arsitektur <strong>MVVM (Model-View-ViewModel)</strong> dengan penyimpanan data menggunakan <strong>Room Database</strong> berbasis SQLite. Aplikasi dibangun sepenuhnya dengan <strong>Jetpack Compose</strong> dan <strong>Kotlin</strong>.
+</p>
+
+<!-- ==================== TUJUAN ==================== -->
+<h2>🎯 Tujuan</h2>
+<ul>
+  <li>Memahami konsep arsitektur MVVM pada Android</li>
+  <li>Mengimplementasikan Room Database sebagai penyimpanan lokal</li>
+  <li>Membuat UI login menggunakan Jetpack Compose</li>
+  <li>Menggunakan Kotlin Coroutine untuk operasi asynchronous</li>
+  <li>Menampilkan status login berhasil / gagal</li>
+</ul>
+
+<!-- ==================== TOOLS ==================== -->
+<h2>🛠️ Tools yang Digunakan</h2>
+<table>
+  <tr><th>Komponen</th><th>Versi / Keterangan</th></tr>
+  <tr><td>Android Studio</td><td>Hedgehog / Iguana / terbaru</td></tr>
+  <tr><td>Bahasa</td><td>Kotlin</td></tr>
+  <tr><td>Min SDK</td><td>API 24</td></tr>
+  <tr><td>Compile SDK</td><td>36</td></tr>
+  <tr><td>Android Gradle Plugin</td><td>9.0.0</td></tr>
+  <tr><td>Gradle</td><td>9.3.1</td></tr>
+  <tr><td>Room</td><td>2.7.0</td></tr>
+  <tr><td>KSP</td><td>2.0.21-1.0.28</td></tr>
+  <tr><td>Jetpack Compose BOM</td><td>2024.09.00</td></tr>
+</table>
+
+<!-- ==================== STRUKTUR PROYEK ==================== -->
+<h2>📁 Struktur Folder Proyek</h2>
+<p>Buat struktur folder berikut di dalam package utama <code>com.example.loginmvvmapp</code>:</p>
+<pre>
+com.example.loginmvvmapp
+├── data
+│   ├── local
+│   │   ├── dao          → UserDao.kt
+│   │   ├── database     → AppDatabase.kt
+│   │   └── entity       → User.kt
+│   └── repository       → UserRepository.kt
+├── ui
+│   └── screen           → LoginScreen.kt
+└── viewmodel
+    ├── LoginViewModel.kt
+    └── LoginViewModelFactory.kt
+</pre>
+
+<!-- ==================== KONFIGURASI GRADLE ==================== -->
+<h2>⚙️ Konfigurasi Gradle</h2>
+
+<div class="warn-box">
+  <strong>⚠️ Catatan Penting:</strong> Tutorial asli menggunakan <code>kapt</code>, namun AGP 9.0.0+ menggunakan <em>Built-in Kotlin</em> yang tidak kompatibel dengan <code>kapt</code>. Gunakan <strong>KSP</strong> sebagai penggantinya. Room juga harus versi <strong>2.7.0</strong> agar kompatibel dengan KSP 2.0.x.
+</div>
+
+<h3><span class="file-label">gradle/libs.versions.toml</span></h3>
+<pre>
+[versions]
+agp = "9.0.0"
+coreKtx = "1.16.0"
+junit = "4.13.2"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+lifecycleRuntimeKtx = "2.10.0"
+activityCompose = "1.13.0"
+kotlin = "2.0.21"
+ksp = "2.0.21-1.0.28"
+composeBom = "2024.09.00"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+</pre>
+
+<h3><span class="file-label">build.gradle.kts (Project)</span></h3>
+<pre>
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.compose) apply false
+    alias(libs.plugins.ksp) apply false
+}
+</pre>
+
+<h3><span class="file-label">app/build.gradle.kts</span></h3>
+<pre>
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+}
+
+android {
+    namespace = "com.example.loginmvvmapp"
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = "com.example.loginmvvmapp"
+        minSdk = 24
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    buildFeatures {
+        compose = true
+    }
+}
+
+dependencies {
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation("androidx.room:room-runtime:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
+    ksp("androidx.room:room-compiler:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+</pre>
+
+<h3><span class="file-label">gradle.properties</span></h3>
+<p>Tambahkan baris berikut untuk menghindari konflik KSP dengan Built-in Kotlin:</p>
+<pre>
+android.disallowKotlinSourceSets=false
+</pre>
+
+<h3><span class="file-label">gradle/wrapper/gradle-wrapper.properties</span></h3>
+<pre>
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.3.1-bin.zip
+</pre>
+
+<!-- ==================== IMPLEMENTASI ==================== -->
+<h2>💻 Implementasi Kode</h2>
+
+<!-- STEP 1 - Entity -->
+<h3><span class="step-badge">1</span> Entity — <span class="file-label">data/local/entity/User.kt</span></h3>
+<p>Class ini merepresentasikan tabel <code>users</code> di database Room.</p>
+<pre>
+package com.example.loginmvvmapp.data.local.entity
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "users")
+data class User(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val username: String,
+    val password: String
+)
+</pre>
+
+<!-- STEP 2 - DAO -->
+<h3><span class="step-badge">2</span> DAO — <span class="file-label">data/local/dao/UserDao.kt</span></h3>
+<p>Interface berisi query untuk insert user baru dan validasi login.</p>
+<pre>
+package com.example.loginmvvmapp.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import com.example.loginmvvmapp.data.local.entity.User
+
+@Dao
+interface UserDao {
+    @Insert
+    suspend fun insert(user: User)
+
+    @Query("SELECT * FROM users WHERE username = :username AND password = :password")
+    suspend fun login(username: String, password: String): User?
+}
+</pre>
+
+<!-- STEP 3 - Database -->
+<h3><span class="step-badge">3</span> Database — <span class="file-label">data/local/database/AppDatabase.kt</span></h3>
+<p>Singleton Room Database yang mengelola koneksi ke SQLite.</p>
+<pre>
+package com.example.loginmvvmapp.data.local.database
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import com.example.loginmvvmapp.data.local.dao.UserDao
+import com.example.loginmvvmapp.data.local.entity.User
+
+@Database(entities = [User::class], version = 1)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun userDao(): UserDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "login_db"
+                ).build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
+}
+</pre>
+
+<!-- STEP 4 - Repository -->
+<h3><span class="step-badge">4</span> Repository — <span class="file-label">data/repository/UserRepository.kt</span></h3>
+<p>Lapisan penghubung antara ViewModel dan DAO. ViewModel tidak mengakses DAO secara langsung.</p>
+<pre>
+package com.example.loginmvvmapp.data.repository
+
+import com.example.loginmvvmapp.data.local.dao.UserDao
+import com.example.loginmvvmapp.data.local.entity.User
+
+class UserRepository(private val dao: UserDao) {
+
+    suspend fun insert(user: User) {
+        dao.insert(user)
+    }
+
+    suspend fun login(username: String, password: String): User? {
+        return dao.login(username, password)
+    }
+}
+</pre>
+
+<!-- STEP 5 - ViewModel -->
+<h3><span class="step-badge">5</span> ViewModel — <span class="file-label">viewmodel/LoginViewModel.kt</span></h3>
+<p>Mengelola state UI dan logika login. State <code>loginState</code> dibaca oleh Compose UI secara reaktif.</p>
+<pre>
+package com.example.loginmvvmapp.viewmodel
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.loginmvvmapp.data.local.entity.User
+import com.example.loginmvvmapp.data.repository.UserRepository
+import kotlinx.coroutines.launch
+
+class LoginViewModel(private val repository: UserRepository) : ViewModel() {
+
+    var loginState by mutableStateOf("")
+        private set
+
+    fun login(username: String, password: String) {
+        viewModelScope.launch {
+            val user = repository.login(username, password)
+            loginState = if (user != null) {
+                "Login Berhasil"
+            } else {
+                "Username atau Password Salah"
+            }
+        }
+    }
+
+    fun insertDummyUser() {
+        viewModelScope.launch {
+            repository.insert(User(username = "admin", password = "12345"))
+        }
+    }
+}
+</pre>
+
+<!-- STEP 6 - ViewModelFactory -->
+<h3><span class="step-badge">6</span> ViewModelFactory — <span class="file-label">viewmodel/LoginViewModelFactory.kt</span></h3>
+<p>Factory diperlukan karena <code>LoginViewModel</code> memiliki constructor parameter (bukan default constructor).</p>
+<pre>
+package com.example.loginmvvmapp.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.example.loginmvvmapp.data.repository.UserRepository
+
+class LoginViewModelFactory(
+    private val repository: UserRepository
+) : ViewModelProvider.Factory {
+    override fun &lt;T : ViewModel&gt; create(modelClass: Class&lt;T&gt;): T {
+        return LoginViewModel(repository) as T
+    }
+}
+</pre>
+
+<!-- STEP 7 - LoginScreen -->
+<h3><span class="step-badge">7</span> UI Screen — <span class="file-label">ui/screen/LoginScreen.kt</span></h3>
+<p>Composable function yang menampilkan form login dengan dua TextField dan satu Button.</p>
+<pre>
+package com.example.loginmvvmapp.ui.screen
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.example.loginmvvmapp.viewmodel.LoginViewModel
+
+@Composable
+fun LoginScreen(viewModel: LoginViewModel) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        TextField(
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("Username") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { viewModel.login(username, password) }) {
+            Text("Login")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(viewModel.loginState)
+    }
+}
+</pre>
+
+<!-- STEP 8 - MainActivity -->
+<h3><span class="step-badge">8</span> MainActivity — <span class="file-label">MainActivity.kt</span></h3>
+<p>Entry point aplikasi. Di sini database, repository, factory, dan ViewModel dihubungkan. <code>LaunchedEffect</code> digunakan untuk menyisipkan user dummy sekali saat pertama buka.</p>
+<pre>
+package com.example.loginmvvmapp
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.loginmvvmapp.data.local.database.AppDatabase
+import com.example.loginmvvmapp.data.repository.UserRepository
+import com.example.loginmvvmapp.ui.screen.LoginScreen
+import com.example.loginmvvmapp.viewmodel.LoginViewModel
+import com.example.loginmvvmapp.viewmodel.LoginViewModelFactory
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val database = AppDatabase.getDatabase(this)
+        val repository = UserRepository(database.userDao())
+        val factory = LoginViewModelFactory(repository)
+        setContent {
+            val viewModel: LoginViewModel = viewModel(factory = factory)
+            LaunchedEffect(Unit) {
+                viewModel.insertDummyUser()
+            }
+            LoginScreen(viewModel)
+        }
+    }
+}
+</pre>
+
+<!-- ==================== ALUR MVVM ==================== -->
+<h2>🔄 Alur Arsitektur MVVM</h2>
+<pre>
+User klik tombol Login
+        ↓
+   LoginScreen (Compose UI)
+        ↓
+   LoginViewModel.login()
+        ↓
+   UserRepository.login()
+        ↓
+   UserDao.login()  →  Room Database  →  SQLite
+        ↓
+   Data dikembalikan ke ViewModel
+        ↓
+   loginState di-update
+        ↓
+   Compose UI recompose (tampilkan hasil)
+</pre>
+
+<table>
+  <tr><th>Layer</th><th>File</th><th>Tanggung Jawab</th></tr>
+  <tr><td>View</td><td>LoginScreen.kt</td><td>Tampilan UI, input user</td></tr>
+  <tr><td>ViewModel</td><td>LoginViewModel.kt</td><td>Logika bisnis, state management</td></tr>
+  <tr><td>Repository</td><td>UserRepository.kt</td><td>Jembatan ViewModel ↔ Data</td></tr>
+  <tr><td>DAO</td><td>UserDao.kt</td><td>Query SQL via Room</td></tr>
+  <tr><td>Entity</td><td>User.kt</td><td>Model tabel database</td></tr>
+  <tr><td>Database</td><td>AppDatabase.kt</td><td>Singleton Room Database</td></tr>
+</table>
+
+<!-- ==================== SIMULASI ==================== -->
+<h2>▶️ Simulasi Login</h2>
+<p>Jalankan aplikasi dengan klik tombol <strong>Run ▶</strong> di Android Studio. User dummy otomatis di-insert saat pertama kali aplikasi dibuka.</p>
+
+<table>
+  <tr><th>Skenario</th><th>Username</th><th>Password</th><th>Output</th></tr>
+  <tr><td>✅ Login Berhasil</td><td>admin</td><td>12345</td><td><strong>Login Berhasil</strong></td></tr>
+  <tr><td>❌ Password Salah</td><td>admin</td><td>salah</td><td><strong>Username atau Password Salah</strong></td></tr>
+  <tr><td>❌ User Tidak Ada</td><td>user123</td><td>apapun</td><td><strong>Username atau Password Salah</strong></td></tr>
+</table>
+
+<!-- ==================== MASALAH UMUM ==================== -->
+<h2>🐛 Masalah Umum &amp; Solusinya</h2>
+<table>
+  <tr><th>Error</th><th>Penyebab</th><th>Solusi</th></tr>
+  <tr><td><code>kotlin-kapt not compatible</code></td><td>AGP 9.0+ pakai Built-in Kotlin</td><td>Ganti <code>kapt</code> dengan <code>ksp</code></td></tr>
+  <tr><td><code>unexpected jvm signature V</code></td><td>Room 2.6.x tidak kompatibel KSP 2.0.x</td><td>Upgrade Room ke <strong>2.7.0</strong></td></tr>
+  <tr><td><code>MissingType AppDatabase</code></td><td>Import package salah</td><td>Pastikan semua import pakai <code>loginmvvmapp</code></td></tr>
+  <tr><td><code>disallowKotlinSourceSets</code></td><td>KSP daftarkan source via kotlin DSL</td><td>Tambah <code>android.disallowKotlinSourceSets=false</code></td></tr>
+  <tr><td>Minimum Gradle 9.3.1</td><td>AGP 9.0+ butuh Gradle terbaru</td><td>Update <code>gradle-wrapper.properties</code></td></tr>
+</table>
+
+<!-- ==================== KESIMPULAN ==================== -->
+<h2>📝 Kesimpulan</h2>
+<p>
+Pada praktikum ini kita telah berhasil membuat aplikasi login Android menggunakan arsitektur <strong>MVVM</strong> dengan <strong>Room Database</strong>. Beberapa poin penting yang dipelajari:
+</p>
+<ul>
+  <li><strong>MVVM</strong> memisahkan UI, logika bisnis, dan data sehingga kode lebih rapi dan mudah di-maintain.</li>
+  <li><strong>Room Database</strong> menyederhanakan akses SQLite dengan annotation-based query yang type-safe.</li>
+  <li><strong>KSP</strong> (Kotlin Symbol Processing) adalah pengganti KAPT yang lebih cepat dan kompatibel dengan AGP modern.</li>
+  <li><strong>Kotlin Coroutine</strong> memungkinkan operasi database berjalan secara asynchronous tanpa memblokir UI thread.</li>
+  <li><strong>Jetpack Compose</strong> dengan <code>mutableStateOf</code> membuat UI reaktif secara otomatis saat data berubah.</li>
+</ul>
+
+<div class="info-box">
+  <strong>💡 Tips:</strong> Selalu sesuaikan <em>package name</em> di setiap file Kotlin. Kesalahan package name adalah penyebab paling umum error <code>MissingType</code> dan <code>Unresolved reference</code> pada proyek Android.
+</div>
+
+</div>
+<!-- ============================================================
+     AKHIR KONTEN — SAMPAI SINI YANG DI-COPY KE BLOGSPOT
+     ============================================================ -->
